@@ -31,7 +31,13 @@ let lastUpdatedTenthsec = 0
 // WORLD CODE
 // Player Chatting: Does not allow muted players to send messages, or deafened players to receive messages.
 function onPlayerChat(playerId, chatMessage, channelName) {
-    for (const playerId2 of api.getPlayerIds()) {
+    for (const playerId2 of api.getPlayerIds()) {		
+		if (muted.includes(api.getPlayerDbId(playerId))) {
+			api.sendMessage(playerId, "Muted player " + api.getEntityName(playerId) + " is trying to say: " + chatMessage, {color: "blue"})
+		}
+		if (!deafened.includes(api.getPlayerDbId(playerId2))) {
+			api.sendMessage(playerId, [{str: api.getEntityName(playerId) + ": ", style: {color: "blue"}}, chatMessage])
+		}
     }
     return false
 }
@@ -49,7 +55,7 @@ function tick(ms) {
         // If the current tenth of a second hasn't been updated, and it is divisible by 5...
         if (((Math.floor(api.now() / 50) % 10) === 0) && (Math.floor(api.now() / 100)) > lastUpdatedTenthsec) {
             // Players with the Autoblock perk will receive an AutoBlock
-            if ((tracker[playerId].perks.includes("Autoblock")) && !api.inventoryIsFull(playerId) && addons.includes("Perks")) {api.giveItem(playerId, "Maple Leaves", 1, {customDisplayName: "AutoBlock"})}
+            if ((tracker[playerId].perks.includes("Autoblock")) && !api.inventoryIsFull(playerId) && addons.includes("Perks")) {api.giveItem(playerId, "Maple Leaves", tracker[playerId].perks.filter(perk => perk === "Autoblock").length, {customDisplayName: "AutoBlock"})}
         }
         // Track if the current second has already been updated
         if (((Math.floor(api.now() / 100) % 10) === 0) && (Math.floor(api.now() / 1000)) > lastUpdatedSec) {lastUpdatedSec = Math.floor(api.now() / 1000)}
@@ -63,7 +69,7 @@ function tick(ms) {
         // Players with the Blockbreaker perk will get the Haste effect
         if (tracker[playerId].perks.includes("Blockbreaker") && addons.includes("Perks")) {api.applyEffect(playerId, "Haste", 1, {inbuiltLevel: 1})}
         // NEEDS FIX Players with the Healthup perk will get their health boosted
-        if (tracker[playerId].perks.includes("Healthup") && addons.includes("Perks")) {api.setHealth(playerId, 130, undefined, true)}
+        if (tracker[playerId].perks.includes("Healthup") && addons.includes("Perks")) {api.setHealth(playerId, 100 + (30 * (tracker[playerId].perks.filter(perk => perk === "Healthup").length)), undefined, true)}
     }
 }
 
